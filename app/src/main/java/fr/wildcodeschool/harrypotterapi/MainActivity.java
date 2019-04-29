@@ -2,6 +2,8 @@ package fr.wildcodeschool.harrypotterapi;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -19,6 +21,9 @@ import com.bumptech.glide.Glide;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,28 +48,31 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONArray response) {
 
-                        LinearLayout characterContainer = findViewById(R.id.characterContainer);
+                        List<Character> characters = new ArrayList<>();
                         try {
                             for (int i = 0; i < response.length(); i++) {
-                                JSONObject character = (JSONObject) response.get(i);
-                                String image = character.getString("image");
-                                // récupérer l'image
+                                JSONObject characterJson = (JSONObject) response.get(i);
+                                String image = characterJson.getString("image");
+                                Character character = new Character(image);
+                                characters.add(character);
 
-                                ImageView ivCharacter = new ImageView(MainActivity.this);
-
-                                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-
-                                ivCharacter.setLayoutParams(lp);
-
-                                Glide.with(MainActivity.this)
-                                        .load(image)
-                                        .into(ivCharacter);
-
-                                characterContainer.addView(ivCharacter);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+
+                        RecyclerView characterList = findViewById(R.id.characterContainer);
+
+                        // use this setting to improve performance if you know that changes
+                        // in content do not change the layout size of the RecyclerView
+                        characterList.setHasFixedSize(true);
+
+                        // use a linear layout manager
+                        LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity.this);
+                        characterList.setLayoutManager(layoutManager);
+
+                        CharacterAdapter adapter = new CharacterAdapter(characters, MainActivity.this);
+                        characterList.setAdapter(adapter);
                     }
                 },
                 new Response.ErrorListener() {
